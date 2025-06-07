@@ -30,7 +30,7 @@ router.post(
       .isFloat()
       .withMessage("Longitude must be a valid number"),
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -47,10 +47,13 @@ router.post(
 
     const query =
       "INSERT INTO schools (name, address, latitude, longitude) VALUES (?, ?, ?, ?)";
-    db.query(query, [name, address, latitude, longitude], (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ message: "School added successfully" });
-    });
+      try {
+        await db.query(query, [name, address, latitude, longitude]);
+        res.status(201).json({ message: "School added successfully" });
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+      
   }
 );
 
@@ -83,7 +86,7 @@ router.get(
       .isFloat()
       .withMessage("Longitude must be a valid number"),
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -101,23 +104,25 @@ router.get(
     const userLon = parseFloat(req.query.longitude);
 
     const query = "SELECT * FROM schools";
-    db.query(query, (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-
-      const sorted = results
-        .map((school) => {
-          const distance = getDistance(
-            userLat,
-            userLon,
-            school.latitude,
-            school.longitude
-          );
-          return { ...school, distance };
-        })
-        .sort((a, b) => a.distance - b.distance);
-
-      res.json(sorted);
-    });
+    try {
+        const [results] = await db.query(query);
+        const sorted = results
+          .map((school) => {
+            const distance = getDistance(
+              userLat,
+              userLon,
+              school.latitude,
+              school.longitude
+            );
+            return { ...school, distance };
+          })
+          .sort((a, b) => a.distance - b.distance);
+      
+        res.json(sorted);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+      
   }
 );
 
