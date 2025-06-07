@@ -1,6 +1,6 @@
 To run this repo, first clone it. Use the following command or you can download the zip file of the project
 
-gh repo clone ChandraKiran34/Educase_schoolapi
+git clone https://github.com/ChandraKiran34/Educase_schoolapi.git
 
 Set up an env file which should contain your db_name, db_host, db_password, db_user
 Now to initialize this you need to type the following commands : 
